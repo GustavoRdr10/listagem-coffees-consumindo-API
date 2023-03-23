@@ -24,7 +24,7 @@ const CustomCard = styled(Card)({
   border: '1px solid black',
 });
 
-  const NewCafe = ({ handleNewCafe }: NewCafeProps) => {
+const NewCafe = ({ handleNewCafe }: NewCafeProps) => {
   const navigate = useNavigate();
   const [cafe, setCafe] = useState<Cafe>({ title: '', type: '' });
   const [openSuccessSnackbar, setOpenSuccessSnackbar] = useState(false);

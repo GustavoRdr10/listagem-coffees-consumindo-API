@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Box } from '@mui/system';
 import { MenuItem } from '@mui/material';
-import { TextFieldProps } from '@mui/material/TextField';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
-import { TextField, Button, Card, CardContent, Typography, IconButton, Snackbar } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { TextField, Button, Card, CardContent, Typography } from '@mui/material';
 import styled from '@mui/material/styles/styled';
 
 export type Cafe = {
@@ -16,16 +16,6 @@ type CafeDetailsProps = {
   setFilteredCafes: (updatedCafes: Cafe[]) => void;
 };
 
-type CustomTextFieldProps = TextFieldProps & {
-  MenuProps?: {
-    PaperProps: {
-      style: {
-        maxHeight: number;
-      };
-    };
-  };
-};
-
 const StyledTextField = styled(TextField)({
   width: '120px',
   marginLeft: '30px',
@@ -33,10 +23,10 @@ const StyledTextField = styled(TextField)({
   position: 'relative',
   top: '8px',
   '& label': {
-      color: 'blue'
+    color: 'blue'
   },
   '& select': {
-      backgroundColor: 'lightgray'
+    backgroundColor: 'lightgray'
   }
 });
 
@@ -79,11 +69,10 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
   const { title } = useParams<{ title: string }>();
   const navigate = useNavigate();
   const [showSaveSnackbar, setShowSaveSnackbar] = useState<boolean>(false);
-  const [cafe, setCafe] = useState<Cafe>({ title: '', type: 'Iced' });
-
-  const [editedCafe, setEditedCafe] = useState<Cafe>({ title: '', type: 'Hot' });
+  const [editedCafe, setEditedCafe] = useState<Cafe | null>({ title: '', type: 'Hot' });
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
   useEffect(() => {
     const cafe = cafes.find(cafe => cafe.title === title);
@@ -117,15 +106,16 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
     }
   };
 
-
   const handleDeleteClick = () => {
     if (editedCafe) {
       const updatedCafes = cafes.filter(cafe => cafe.title !== editedCafe.title);
       setFilteredCafes(updatedCafes);
+      setEditedCafe(null);
       setShowSnackbar(true);
       setSnackbarMessage('Café excluído com sucesso!');
     }
-    navigate('/cafes');
+    setShowDeleteDialog(false);
+    navigate(-1);
   };
 
   const handleBackClick = () => {
@@ -207,60 +197,53 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
         </TextFieldContainer>
         <div>
           <TextFieldContainer>
-          <StyledTextField
-  label="Tipo"
-  name="type"
-  value={editedCafe.type}
-  onChange={handleInputChange}
-  select
-  SelectProps={{
-    MenuProps: {
-      PaperProps: {
-        style: {
-          maxHeight: 400,
-        },
-      },
-      MenuListProps: {
-        style: {
-          width: '100px', 
-        },
-      },
-    },
-  }}
->
-  <MenuItem value="Hot">Hot</MenuItem>
-  <MenuItem value="Iced">Iced</MenuItem>
-</StyledTextField>
-
-
+            <StyledTextField
+              label="Tipo"
+              name="type"
+              value={editedCafe.type}
+              onChange={handleInputChange}
+              select
+              SelectProps={{
+                MenuProps: {
+                  PaperProps: {
+                    style: {
+                      maxHeight: 400,
+                    },
+                  },
+                  MenuListProps: {
+                    style: {
+                      width: '100px',
+                    },
+                  },
+                },
+              }}
+            >
+              <MenuItem value="Hot">Hot</MenuItem>
+              <MenuItem value="Iced">Iced</MenuItem>
+            </StyledTextField>
           </TextFieldContainer>
         </div>
-
-
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <ButtonDelete variant="contained" onClick={handleDeleteClick}>Excluir</ButtonDelete>
           <ButtonSave variant="contained" onClick={handleSaveClick}>Salvar</ButtonSave>
         </div>
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          open={showSaveSnackbar} // estado para mostrar o Snackbar
-          autoHideDuration={3000}
-          onClose={() => setShowSaveSnackbar(false)}
-          message={snackbarMessage} // mensagem exibida no Snackbar
-        />
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          open={showSnackbar}
-          autoHideDuration={3000}
-          onClose={() => setShowSnackbar(false)}
-          message={snackbarMessage}
-        />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <ButtonDelete variant="contained" onClick={() => setShowDeleteDialog(true)}>Excluir</ButtonDelete>
+          <ButtonSave variant="contained" onClick={handleSaveClick}>Salvar</ButtonSave>
+        </div>
+        <Dialog
+          open={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+        >
+          <DialogTitle>Excluir café?</DialogTitle>
+          <DialogContent>
+            <Typography>Deseja realmente excluir o café?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowDeleteDialog(false)}>Cancelar</Button>
+            <Button onClick={handleDeleteClick} variant="contained" color="error">Excluir</Button>
+          </DialogActions>
+        </Dialog>
       </CardContent>
     </StyledCard >
   );
