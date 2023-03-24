@@ -7,15 +7,6 @@ import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material
 import { TextField, Button, Card, CardContent, Typography } from '@mui/material';
 import styled from '@mui/material/styles/styled';
 
-export type Cafe = {
-  title: string;
-  type: string | 'Hot' | 'Iced';
-}
-type CafeDetailsProps = {
-  cafes: Cafe[];
-  setFilteredCafes: (updatedCafes: Cafe[]) => void;
-};
-
 const StyledTextField = styled(TextField)({
   width: '120px',
   marginLeft: '30px',
@@ -65,6 +56,15 @@ const ButtonDelete = styled(Button)({
   },
 });
 
+export type Cafe = {
+  title: string;
+  type: string | 'Hot' | 'Iced';
+}
+type CafeDetailsProps = {
+  cafes: Cafe[];
+  setFilteredCafes: (updatedCafes: Cafe[]) => void;
+};
+
 const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
   const { title } = useParams<{ title: string }>();
   const navigate = useNavigate();
@@ -72,6 +72,7 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
   const [editedCafe, setEditedCafe] = useState<Cafe | null>({ title: '', type: 'Hot' });
   const [showSnackbar, setShowSnackbar] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const [showSaveDialog, setShowSaveDialog] = useState<boolean>(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
   useEffect(() => {
@@ -88,21 +89,6 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
         ...editedCafe,
         [name]: value
       });
-    }
-  };
-
-  const handleSaveClick = () => {
-    try {
-      if (editedCafe) {
-        const updatedCafes = cafes.map(cafe => cafe.title === editedCafe.title ? editedCafe : cafe);
-        setFilteredCafes(updatedCafes);
-        setShowSaveSnackbar(true);
-        setSnackbarMessage('Café salvo com sucesso!');
-      }
-      navigate('/cafes');
-    } catch (error: any) {
-      alert(`Ocorreu um erro ao salvar o café: ${error.message}`);
-      console.error(error);
     }
   };
 
@@ -224,13 +210,18 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
           </TextFieldContainer>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <ButtonDelete variant="contained" onClick={handleDeleteClick}>Excluir</ButtonDelete>
-          <ButtonSave variant="contained" onClick={handleSaveClick}>Salvar</ButtonSave>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <ButtonDelete variant="contained" onClick={() => setShowDeleteDialog(true)}>Excluir</ButtonDelete>
-          <ButtonSave variant="contained" onClick={handleSaveClick}>Salvar</ButtonSave>
+          <ButtonSave variant="contained" onClick={() => setShowSaveDialog(true)}>Salvar</ButtonSave>
         </div>
+        <Dialog open={showSaveDialog} onClose={() => setShowSaveDialog(false)}>
+          <DialogTitle>Café salvo</DialogTitle>
+          <DialogContent>
+            <Typography>Café salvo com sucesso!</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowSaveDialog(false)}>OK</Button>
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
@@ -242,6 +233,15 @@ const CafeDetails = ({ cafes, setFilteredCafes }: CafeDetailsProps) => {
           <DialogActions>
             <Button onClick={() => setShowDeleteDialog(false)}>Cancelar</Button>
             <Button onClick={handleDeleteClick} variant="contained" color="error">Excluir</Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={showSaveSnackbar} onClose={() => setShowSaveSnackbar(false)}>
+          <DialogTitle>Café salvo</DialogTitle>
+          <DialogContent>
+            <Typography>Café salvo com sucesso!</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowSaveSnackbar(false)}>OK</Button>
           </DialogActions>
         </Dialog>
       </CardContent>
